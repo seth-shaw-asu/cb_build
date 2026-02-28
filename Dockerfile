@@ -3,7 +3,7 @@
 # -------------------------
 FROM ruby:3.2-slim AS builder
 
-ARG CB_REPO=https://github.com/CollectionBuilder/collectionbuilder-sheets.git
+ARG CB_REPO=https://github.com/CollectionBuilder/collectionbuilder-csv.git
 ARG CB_BRANCH=main
 ARG CB_COMMIT=""
 
@@ -40,13 +40,12 @@ RUN set -eux; \
     fi; \
     rm -rf /srv/site/.git
 
-RUN gem install bundler -v "$( (bundle _2.4.15_ --version 2>/dev/null) || echo '2.4.15' )" || true
+# Install bundler
+RUN gem install bundler -v 2.4.15
 
-# Install gems if Gemfile present
-RUN if [ -f "Gemfile" ]; then \
-      bundle config set --local path "${BUNDLE_PATH}" && \
-      bundle install --jobs=4 --retry=3 ; \
-    fi
+# Install gems
+RUN bundle config set --local path "${BUNDLE_PATH}" \
+ && bundle install --jobs=4 --retry=3
 
 # -------------------------
 # Stage 2: final runtime
@@ -60,8 +59,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Etc/UTC \
     BUNDLE_PATH=/usr/local/bundle
 
-# runtime libs + imagemagick & ghostscript for derivative generation
-# use libffi-dev (generic) so we don't pin a specific libffi version
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates \
@@ -71,23 +68,16 @@ RUN apt-get update \
       libgmp10 \
       imagemagick \
       ghostscript \
+      rsync \
  && rm -rf /var/lib/apt/lists/*
-
-# Optional awscli install (disabled by default to keep image small)
-RUN if [ "${INSTALL_AWSCLI}" = "true" ]; then \
-      apt-get update && apt-get install -y --no-install-recommends unzip groff less && rm -rf /var/lib/apt/lists/* && \
-      curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip && \
-      unzip /tmp/awscliv2.zip -d /tmp/ && /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \
-      rm -rf /tmp/aws* /tmp/awscliv2.zip ; \
-    fi
 
 WORKDIR /srv/site
 
-# copy site and gems from builder
+# Copy site + gems from builder
 COPY --from=builder /srv/site/ /srv/site/
 COPY --from=builder /usr/local/bundle/ /usr/local/bundle/
 
-# copy entrypoint
+# Copy entrypoint
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

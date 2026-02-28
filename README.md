@@ -95,7 +95,7 @@ Run `run-cb.sh` from this directory.
 ## Project Repository
 
 ```
-my-project/
+example/
 ├── overrides/
 │   └── _config.yml
 └── objects/
