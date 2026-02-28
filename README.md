@@ -1,25 +1,11 @@
 CollectionBuilder Docker Build System
 =======================================
 
-This repository provides a reproducible, containerized build system for **CollectionBuilder**, supporting both:
-
-* `collectionbuilder-sheets`
-* `collectionbuilder-gh`
+This repository provides a reproducible, containerized build system for **CollectionBuilder** using `collectionbuilder-csv`.
 
 The container is intentionally minimal and metadata-agnostic.
 It does **not** inspect, validate, or download metadata files.
 CollectionBuilder itself handles all metadata loading and processing.
-
----
-
-# Design Goals
-
-* Reproducible builds
-* Optional commit pinning
-* Slim runtime image
-* Clean theme/project separation
-* Host-side S3 deployment
-* Built-in derivative generation support
 
 ---
 
@@ -49,7 +35,6 @@ The Docker image:
 * Includes:
   * ImageMagick
   * Ghostscript
-* (Optionally) AWS CLI
 
 ---
 
@@ -75,42 +60,46 @@ The container:
 
 # Repository Structure
 
-## Theme / Build Repository (this repo)
+## Build Repository (this repo)
 
 ```
 .
 ├── Dockerfile
 ├── entrypoint.sh
 ├── run-cb.sh
-├── _layouts/
-├── _includes/
-├── assets/
-└── README.md
+├── example/
+├── README.md
+└── [optional theme overlays: _layouts/, _includes/, assets/, etc.]
 ```
 
-Run `run-cb.sh` from this directory.
+Run `run-cb.sh` from this directory. Optional theme customizations can be added directly to the root directory.
 
 ---
 
-## Project Repository
+## Example Project Repository
+
+The `example/` directory demonstrates the project structure:
 
 ```
 example/
 ├── overrides/
-│   └── _config.yml
+│   ├── _config.yml
+│   └── _data/
+│       ├── metadata.csv
+│       └── theme.yml
 └── objects/
-    ├── metadata.csv
-    ├── image1.jpg
-    └── ...
+    ├── 01casc.jpg
+    ├── 01land.pdf
+    └── [additional collection objects]
 ```
 
-Metadata configuration must follow official CollectionBuilder documentation:
+### Configuration
 
-* `metadata-csv` (Sheets template)
-* `metadata` (GH/CSV template)
+* `overrides/_config.yml` - Base CollectionBuilder configuration
+* `overrides/_data/theme.yml` - Theme-specific settings
+* `overrides/_data/metadata.csv` - Collection metadata
 
-Official documentation:
-[https://collectionbuilder.github.io/cb-docs/docs/config/collection/](https://collectionbuilder.github.io/cb-docs/docs/config/collection/)
+Metadata configuration must follow official [CollectionBuilder documentation](https://collectionbuilder.github.io/cb-docs/docs/metadata/csv_metadata/).
 
 ---
 
@@ -213,26 +202,6 @@ docker run --rm \
 
 ---
 
-# Security & Minimalism
-
-The image:
-
-* Uses multi-stage build
-* Removes build dependencies from runtime
-* Does not include git in final image
-* Does not include AWS CLI by default
-* Does not pass AWS credentials into container
-
-You may enable AWS CLI with:
-
-```bash
-docker build --build-arg INSTALL_AWSCLI=true -t collectionbuilder:latest .
-```
-
-But host-side sync is recommended.
-
----
-
 # Production Recommendations
 
 For CI:
@@ -245,6 +214,6 @@ For CI:
 Example:
 
 ```bash
-docker build --build-arg CB_COMMIT=<sha> -t collectionbuilder:sheets-<shortsha> .
-docker push collectionbuilder:sheets-<shortsha>
+docker build --build-arg CB_COMMIT=<sha> -t collectionbuilder:csv-<shortsha> .
+docker push collectionbuilder:csv-<shortsha>
 ```

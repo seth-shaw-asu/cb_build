@@ -52,8 +52,6 @@ RUN bundle config set --local path "${BUNDLE_PATH}" \
 # -------------------------
 FROM ruby:3.2-slim AS final
 
-ARG INSTALL_AWSCLI="false"
-
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     TZ=Etc/UTC \
