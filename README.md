@@ -1,5 +1,5 @@
 CollectionBuilder Docker Build System
-=======================================
+=====================================
 
 This repository provides a reproducible, containerized build system for **CollectionBuilder** using `collectionbuilder-csv`.
 
@@ -7,22 +7,10 @@ The container is intentionally minimal and metadata-agnostic.
 It does **not** inspect, validate, or download metadata files.
 CollectionBuilder itself handles all metadata loading and processing.
 
----
+# TODO
 
-# Versioning Strategy
-
-CollectionBuilder does not publish tagged releases.
-
-This build system supports:
-
-| Mode          | Behavior                      | Reproducible |
-| ------------- | ----------------------------- | ------------ |
-| Default       | Clone `main` branch           | ❌ No         |
-| Commit pinned | Fetch specific Git commit SHA | ✅ Yes        |
-
-For production or CI, you should use `CB_COMMIT`.
-
----
+- Add code so that the derivative paths are added to the csv file.
+- Stop the whole project from showing up in the site build directory.
 
 # Architecture Overview
 
@@ -35,8 +23,6 @@ The Docker image:
 * Includes:
   * ImageMagick
   * Ghostscript
-
----
 
 ## Runtime Mounts
 
@@ -56,8 +42,6 @@ The container:
 3. Runs `bundle install`
 4. Runs `bundle exec jekyll build`
 
----
-
 # Repository Structure
 
 ## Build Repository (this repo)
@@ -74,7 +58,6 @@ The container:
 
 Run `run-cb.sh` from this directory. Optional theme customizations can be added directly to the root directory.
 
----
 
 ## Example Project Repository
 
@@ -101,8 +84,6 @@ example/
 
 Metadata configuration must follow official [CollectionBuilder documentation](https://collectionbuilder.github.io/cb-docs/docs/metadata/csv_metadata/).
 
----
-
 # Building the Docker Image
 
 ## Default (clone main branch)
@@ -111,17 +92,17 @@ Metadata configuration must follow official [CollectionBuilder documentation](ht
 docker build -t collectionbuilder:latest .
 ```
 
----
-
 ## Pin to a Specific Commit (Recommended for CI)
+
+CollectionBuilder does not publish tagged releases.
+
+For production or CI, you should use `CB_COMMIT`.
 
 ```bash
 docker build \
   --build-arg CB_COMMIT=<full-commit-sha> \
   -t collectionbuilder:sha-<shortsha> .
 ```
-
----
 
 # Running Builds
 
@@ -131,16 +112,12 @@ docker build \
 ./run-cb.sh ../my-project ./out
 ```
 
----
-
 ## Use Specific Image
 
 ```bash
 ./run-cb.sh ../my-project ./out \
   --image collectionbuilder:sha-3f2a6e8
 ```
-
----
 
 ## Build and Deploy to S3 (Host-Side)
 
@@ -152,8 +129,6 @@ AWS CLI must be installed on the host.
 ```
 
 S3 sync happens outside the container.
-
----
 
 # Generate Derivatives
 
@@ -184,8 +159,6 @@ What happens:
 3. Runs the site build
 4. Outputs to `./out`
 
----
-
 # Derivatives Only (Manual Invocation)
 
 If you only want derivatives:
@@ -199,8 +172,6 @@ docker run --rm \
   collectionbuilder:latest \
   bundle exec rake generate_derivatives
 ```
-
----
 
 # Production Recommendations
 
